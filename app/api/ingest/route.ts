@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const result = await runDailyIngest(body.fromDate)
     return NextResponse.json(result)
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
+    const message = err instanceof Error ? err.message : JSON.stringify(err)
     console.error('[ingest] error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
