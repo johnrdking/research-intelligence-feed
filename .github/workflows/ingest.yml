@@ -1,0 +1,47 @@
+name: Research Ingest
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 6am UTC daily
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'What to run'
+        required: true
+        default: 'ingest'
+        type: choice
+        options:
+          - ingest          # fetch new articles + generate digest
+          - digest          # generate digest from articles already in DB
+      fromDate:
+        description: 'Backfill from date (YYYY-MM-DD) — ingest mode only'
+        required: false
+        default: ''
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pipeline
+        run: npx tsx scripts/run-ingest.ts ${{ github.event.inputs.mode || 'ingest' }} ${{ github.event.inputs.fromDate }}
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:    ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:   ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY:           ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY:              ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM:                 ${{ secrets.RESEND_FROM }}
+          DIGEST_EMAIL:                ${{ secrets.DIGEST_EMAIL }}
+          NEXT_PUBLIC_SITE_URL:        ${{ secrets.NEXT_PUBLIC_SITE_URL }}
