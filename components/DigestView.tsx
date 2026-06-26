@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function DigestView({ digest, articles }: Props) {
-  const [view, setView] = useState<'digest' | 'articles'>('digest')
+  const [view, setView] = useState<'digest' | 'articles'>(digest ? 'digest' : 'articles')
 
   const formattedDate = digest?.date
     ? new Date(digest.date).toLocaleDateString('en-GB', {
